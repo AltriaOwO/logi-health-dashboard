@@ -5,7 +5,7 @@ Created on Wed Apr 23 00:25:39 2025
 
 @author: anthony
 """
-
+import pandas as pd
 import streamlit as st
 from analysis import (
     load_dataset,
@@ -70,9 +70,3 @@ if uploaded:
             st.download_button("Download report", f, file_name="location_health.pdf")
 else:
     st.info("Please upload the data file on the left to start the analysis.")
-
-try:
-    df = pd.read_excel(uploaded)   # 仍然交给 pandas 自动选 openpyxl
-except ImportError as e:
-    st.error("Openpyxl is missing to read Excel, please contact the developer to install.")
-    st.stop()

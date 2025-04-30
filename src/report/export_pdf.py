@@ -26,10 +26,20 @@ def create_pdf(df: pd.DataFrame, flags: pd.DataFrame) -> Path:
     # Prepare summary table
     summary_html = df["CompositeScore"].describe().to_frame().to_html(classes="pandas")
 
-    # Filter top 10 with deterioration (bad trend = 1)
-    bad_flags = flags[flags["CompositeScore_bad"] == 1].copy()
-    bad_flags = bad_flags.head(10)
-    bad_flags_html = bad_flags.to_html(index=False, classes="pandas")
+    # Select locations whose trend is deteriorating (CompositeScore_bad == 1)
+    bad_df = (
+        df[["LocationID", "CompositeScore"]]
+        .merge(flags, on="LocationID", how="inner")
+        .query("CompositeScore_bad == 1")
+        .nsmallest(10, "CompositeScore")           # lowest composite scores = worst performers
+        .drop(columns="CompositeScore_bad") \
+        .assign(Detected="Detected") \
+        .rename(columns={
+            "CompositeScore": "CompositeScore (0‑1 scale)",
+            "Detected": ""
+        })
+    )
+    bad_flags_html = bad_df.to_html(index=False, classes="pandas")
 
     # Inject into template
     html_out = tmpl.render(
