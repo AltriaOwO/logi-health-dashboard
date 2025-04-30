@@ -26,18 +26,25 @@ def create_pdf(df: pd.DataFrame, flags: pd.DataFrame) -> Path:
     # Prepare summary table
     summary_html = df["CompositeScore"].describe().to_frame().to_html(classes="pandas")
 
-    # Select locations whose trend is deteriorating (CompositeScore_bad == 1)
+    # Aggregate deteriorations so that each location appears only once
     bad_df = (
         df[["LocationID", "CompositeScore"]]
         .merge(flags, on="LocationID", how="inner")
         .query("CompositeScore_bad == 1")
-        .nsmallest(10, "CompositeScore")           # lowest composite scores = worst performers
-        .drop(columns="CompositeScore_bad") \
-        .assign(Detected="Detected") \
+        .groupby("LocationID", as_index=False)
+        .agg(
+            Detections=("CompositeScore_bad", "size"),               # how many windows flagged
+            WorstScore=("CompositeScore", "min")                     # lowest score observed
+        )
+        .sort_values(["WorstScore", "Detections"], ascending=[True, False]) \
+        .reset_index(drop=True) \
+        .assign(Rank=lambda d: d.index + 1) \
         .rename(columns={
-            "CompositeScore": "CompositeScore (0‑1 scale)",
-            "Detected": ""
+            "Rank": "#",
+            "WorstScore": "CompositeScore (0‑1 scale)",
+            "Detections": "Times Detected"
         })
+        .loc[:, ["#", "LocationID", "CompositeScore (0‑1 scale)", "Times Detected"]]
     )
     bad_flags_html = bad_df.to_html(index=False, classes="pandas")
 
