@@ -15,10 +15,6 @@ and delivers an interactive web app + slide-ready PDF that answer:
 
 All logic is packaged in reusable Python classes—**`SafetyScoreCalculator`** and **`WorkloadScoreCalculator`**—so you can plug in any similar fleet dataset.
 
-<p align="center">
-  <!-- Replace with real screenshot -->
-  <img src="docs/screenshot_dashboard.png" width="750" alt="Streamlit dashboard screenshot">
-</p>
 
 ## Features
 | Module | What it does |
